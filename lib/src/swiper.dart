@@ -489,7 +489,7 @@ class _SwiperState extends _SwiperTimerMixin {
     }
 
     if (widget.layout == SwiperLayout.STACK) {
-      return _StackSwiper(
+      final child = _StackSwiper(
         loop: widget.loop,
         itemWidth: widget.itemWidth,
         itemHeight: widget.itemHeight,
@@ -503,6 +503,23 @@ class _SwiperState extends _SwiperTimerMixin {
         scrollDirection: widget.scrollDirection,
         axisDirection: widget.axisDirection,
       );
+
+      if (widget.autoplayDisableOnInteraction && widget.autoplay) {
+        return NotificationListener<ScrollNotification>(
+          onNotification: (notification) {
+            if (notification is ScrollStartNotification &&
+                notification.dragDetails != null) {
+              if (_timer != null) _stopAutoplay();
+            } else if (notification is ScrollEndNotification) {
+              if (_timer == null) _startAutoplay();
+            }
+            return false;
+          },
+          child: child,
+        );
+      }
+
+      return child;
     } else if (_isPageViewLayout()) {
       //default
       var transformer = widget.transformer;
